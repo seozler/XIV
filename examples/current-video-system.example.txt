@@ -1,0 +1,12 @@
+ÖRNEK SİSTEM AÇIKLAMASI (yalnızca test/biçim örneği — kendi sisteminizin .txt dosyasıyla değiştirin)
+
+Genel mimari: Next.js arayüz, Node.js backend, Redis + BullMQ iş kuyruğu, PostgreSQL, R2 depolama.
+Video render: Remotion (React) ile 1920x1080, 30 fps.
+Senaryo: LLM ile sahne sahne script üretilir; her sahne için başlık, madde listesi ve görsel prompt üretilir.
+Seslendirme: TTS ile üretilir; TTS servisinden word-level timestamp alınır ve altyazı (caption) için kullanılır.
+Animasyon: Elementler interpolate() ile linear olarak opacity 0->1 fade in yapar. Spring kullanılmıyor.
+Sahne geçişleri: Sahneler arasında hard cut vardır; transition kütüphanesi henüz yok.
+Müzik: Sabit seviyede arka plan müziği eklenir (-20 dB). Ducking yok.
+Ses efektleri: Şu anda ses efekti (SFX) desteği yok.
+Tipografi: Başlık 72px, gövde 40px Inter font.
+Renk: Marka renk paleti tema dosyasında tanımlı.

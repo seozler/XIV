@@ -1,0 +1,73 @@
+# reference-analyzer configuration example.
+# Copy to ./refanalyzer.toml (or pass --config) and adjust. Every key is optional;
+# defaults live in src/refanalyzer/config.py. API keys are read from environment
+# variables only (see `reference-analyzer doctor`), never from this file.
+
+[analysis]
+analysis_width = 640          # decode width for numeric frame analysis
+frame_stride = 1              # 1 = every frame (full mode default)
+ocr_interval_s = 0.5          # fixed OCR sampling; change-triggered frames are added
+ocr_width = 1280              # OCR re-decodes keyframes at this width
+ocr_engine = "auto"           # rapidocr | paddleocr | tesseract | none
+ocr_languages = ["en"]        # e.g. ["tr"] for paddleocr / tesseract
+scene_detector = "builtin"    # builtin | pyscenedetect
+sync_tolerance_ms = 120
+llm_keyframes_per_scene = 2
+llm_max_images = 24           # hard cap on images sent to vision models per run
+
+[providers]
+# "auto" picks the first provider whose key is set; Google is never auto-selected.
+separation = "auto"           # musicai | demucs | none
+transcription = "auto"        # assemblyai | deepgram | faster_whisper | none
+segmentation = "auto"         # replicate | fal | none
+video_understanding = "none"  # twelvelabs | none
+llm = "auto"                  # anthropic | openai | google | none
+
+[llm]
+anthropic_vision_model = "claude-sonnet-5-5"
+anthropic_reasoning_model = "claude-sonnet-5-5"
+anthropic_effort = "high"
+openai_vision_model = "gpt-5.4-mini"
+openai_reasoning_model = "gpt-5.4"
+report_language = "tr"        # tr | en
+
+[musicai]
+# Create a workflow in the Music AI dashboard (e.g. Cinematic Stems for
+# dialogue/music/effects) and put its slug here; map its output names below.
+workflow_dme = ""
+[musicai.stem_keys]
+dialogue = "dialogue"
+music = "music"
+effects = "effects"
+
+[assemblyai]
+speech_model = ""             # empty = provider default (e.g. Universal)
+language_code = ""            # empty = automatic language detection
+speaker_labels = true
+
+[deepgram]
+model = "nova-3"
+language = ""
+
+[replicate]
+sam2_model = "meta/sam-2-video"
+sam2_version = ""             # pin a version hash for reproducibility
+max_elements = 6
+
+[twelvelabs]
+index_name = "reference-analyzer"
+model = "pegasus1.2"
+
+[storage]
+s3_bucket = ""
+s3_prefix = "reference-analysis"
+s3_endpoint = ""              # R2: https://<account>.r2.cloudflarestorage.com
+
+# Prices used for the cost report (USD). Update when providers change them.
+[pricing]
+musicai_dme_per_min = 0.05
+assemblyai_per_hour = 0.21
+assemblyai_diarization_per_hour = 0.02
+deepgram_per_min = 0.0043
+twelvelabs_per_video_hour = 1.75
+replicate_sam2_per_run = 0.039
