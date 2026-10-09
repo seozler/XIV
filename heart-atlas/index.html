@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Kalp Atlası</title>
+  <meta name="description" content="Prosedürel olarak üretilmiş, parçaları ayrılıp birleşebilen, canlı kardiyak döngüyle atan three.js kalp anatomisi kütüphanesi." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23b0413e' d='M12 21s-7.5-4.6-9.6-9.3C.9 8.3 3 4.5 6.6 4.5c2.1 0 3.6 1.2 4.4 2.6.8-1.4 2.3-2.6 4.4-2.6 3.6 0 5.7 3.8 4.2 7.2C19.5 16.4 12 21 12 21z'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <main class="studio" id="studio">
+    <div class="scene" id="scene"></div>
+    <div class="vignette"></div>
+
+    <header class="identity">
+      <div class="eyebrow"><span class="status-dot" id="statusDot"></span>KARDİYAK ATLAS · PROSEDÜREL</div>
+      <h1>Kalp Atlası <span class="edition">v1.0</span></h1>
+      <div class="identity-meta"><span id="metaParts">—</span> yapı<span>·</span><span id="metaSystems">—</span> sistem<span>·</span>canlı kardiyak döngü</div>
+      <div class="palette-choice" role="radiogroup" aria-label="Renk paleti">
+        <button data-palette="atlas" aria-pressed="true">Atlas renkleri</button>
+        <button data-palette="real" aria-pressed="false">Gerçekçi</button>
+      </div>
+    </header>
+
+    <div class="top-actions">
+      <button class="glass" id="btnSearch" title="Ara (/)"><svg viewBox="0 0 24 24" width="17" height="17"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Yapı ara</span><kbd>/</kbd></button>
+      <button class="glass icon-button mobile-only" id="btnLayers" title="Sistemler" aria-label="Sistemler"><svg viewBox="0 0 24 24" width="17" height="17"><path d="m12 3 9 5-9 5-9-5 9-5zM3 13l9 5 9-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></button>
+      <button class="glass icon-button" id="btnAbout" title="Hakkında" aria-label="Hakkında"><svg viewBox="0 0 24 24" width="17" height="17"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 11v6M12 7.5v.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+    </div>
+
+    <aside class="layers-panel glass" id="layersPanel">
+      <div class="panel-heading"><span>Sistemler</span><span class="small-number" id="visibleCount">0</span></div>
+      <div class="layer-presets" role="group" aria-label="Hazır görünümler">
+        <button data-preset="all" aria-pressed="true">Tümü</button>
+        <button data-preset="outer" aria-pressed="false">Dış</button>
+        <button data-preset="inner" aria-pressed="false">İç</button>
+        <button data-preset="electric" aria-pressed="false">Elektrik</button>
+      </div>
+      <div class="system-list" id="systemList"></div>
+      <div class="panel-extra">
+        <label class="range-row"><span>Duvar opaklığı</span><output id="opacityOut">100%</output></label>
+        <input type="range" id="opacity" min="0.08" max="1" step="0.01" value="1" />
+        <label class="toggle-row"><span>Kan akışı</span><input type="checkbox" id="tFlow" class="switch" /></label>
+        <label class="toggle-row"><span>Aktivasyon haritası</span><input type="checkbox" id="tElectric" class="switch" /></label>
+        <label class="toggle-row"><span>Atım (deformasyon)</span><input type="checkbox" id="tDeform" class="switch" checked /></label>
+      </div>
+      <div class="panel-foot"><button id="btnShowAll">Hepsini göster</button><span id="qualityLabel">Kalite: yüksek</span></div>
+    </aside>
+
+    <nav class="view-controls glass" aria-label="Görünüm">
+      <button data-view="anterior" class="active" title="Ön (1)"><span>Ön</span></button>
+      <button data-view="posterior" title="Arka (2)"><span>Ark</span></button>
+      <button data-view="left" title="Sol (3)"><span>Sol</span></button>
+      <button data-view="right" title="Sağ (4)"><span>Sağ</span></button>
+      <button data-view="superior" title="Üst / taban (5)"><span>Üst</span></button>
+      <button data-view="inferior" title="Alt / diyafragmatik (6)"><span>Alt</span></button>
+      <i></i>
+      <button id="btnRotate" title="Otomatik döndür (R)" aria-label="Otomatik döndür"><svg viewBox="0 0 24 24" width="17" height="17"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v4h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    </nav>
+
+    <div class="scene-caption" id="caption"><span class="caption-line"></span><span id="captionText">YÜKLENİYOR</span><span class="caption-line"></span></div>
+
+    <section class="bottom-dock glass" id="dock">
+      <div class="dock-row">
+        <button class="play" id="btnPlay" aria-label="Duraklat" title="Oynat / duraklat (boşluk)"><svg id="icoPause" viewBox="0 0 24 24" width="18" height="18"><rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1" fill="currentColor"/></svg><svg id="icoPlay" viewBox="0 0 24 24" width="18" height="18" hidden><path d="M7 5v14l12-7z" fill="currentColor"/></svg></button>
+        <div class="seg" id="speedSeg" role="group" aria-label="Hız">
+          <button data-speed="0.1">0.1×</button><button data-speed="0.25">0.25×</button><button data-speed="0.5">0.5×</button><button data-speed="1" aria-pressed="true">1×</button>
+        </div>
+        <div class="control grow">
+          <div class="explode-label"><span>Kalp hızı</span><output><b id="hrOut">72</b><span>/dk</span></output></div>
+          <input type="range" id="hr" min="35" max="180" step="1" value="72" />
+        </div>
+        <select id="rhythm" aria-label="Ritim">
+          <option value="nsr">Normal sinüs ritmi</option>
+          <option value="afib">Atriyal fibrilasyon</option>
+          <option value="avb1">1. derece AV blok</option>
+          <option value="avb3">3. derece AV blok</option>
+          <option value="vf">Ventriküler fibrilasyon</option>
+        </select>
+      </div>
+      <div class="dock-row">
+        <div class="control grow">
+          <div class="explode-label"><span>Ayrıştır</span><output><b id="explodeOut">0</b><span>%</span></output></div>
+          <input type="range" id="explode" min="0" max="1" step="0.01" value="0" />
+          <div class="slider-endpoints"><span>Birleşik</span><span>Ayrık parçalar</span></div>
+        </div>
+        <button class="dock-btn" id="btnAssemble" title="Birleştirme animasyonu (B)"><svg viewBox="0 0 24 24" width="17" height="17"><path d="M4 4h6v6H4zM14 14h6v6h-6zM14 4h6v6h-6zM4 14h6v6H4z" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span>Birleştir</span></button>
+        <div class="control section-control">
+          <div class="explode-label"><span>Kesit</span><select id="section">
+            <option value="none">Yok</option>
+            <option value="fourChamber">Dört boşluk</option>
+            <option value="longAxis">Uzun eksen</option>
+            <option value="shortAxis">Kısa eksen</option>
+            <option value="coronal">Koronal</option>
+            <option value="sagittal">Sagittal</option>
+          </select></div>
+          <input type="range" id="sectionOffset" min="-3" max="3" step="0.05" value="0" disabled />
+        </div>
+      </div>
+    </section>
+
+    <section class="monitor glass" id="monitor" aria-label="Hemodinamik monitör">
+      <div class="monitor-head">
+        <span class="monitor-title"><i class="beat-dot" id="beatDot"></i><span id="rhythmName">Normal sinüs ritmi</span></span>
+        <button class="sound" id="btnSound" title="Kalp sesleri (S1/S2)" aria-pressed="false"><svg viewBox="0 0 24 24" width="15" height="15"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path id="soundWaves" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" opacity=".3"/></svg></button>
+      </div>
+      <canvas id="chart" width="340" height="150"></canvas>
+      <div class="monitor-stats">
+        <div><small>KH</small><b id="sHR">72</b></div>
+        <div><small>Aort</small><b id="sBP">120/80</b></div>
+        <div><small>EF</small><b id="sEF">60%</b></div>
+        <div><small>EDV/ESV</small><b id="sVol">120/50</b></div>
+      </div>
+    </section>
+
+    <div class="part-hover" id="hoverTip" hidden></div>
+
+    <aside class="detail-sheet glass" id="detail" hidden>
+      <button class="close" id="detailClose" aria-label="Kapat">×</button>
+      <div class="detail-header">
+        <div class="detail-accent" id="dAccent"></div>
+        <div class="eyebrow" id="dSystem"></div>
+        <h2 class="structure-title" id="dTitle" tabindex="-1"></h2>
+        <div class="latin" id="dLatin"></div>
+      </div>
+      <div class="detail-scroll">
+        <p class="structure-description" id="dDesc"></p>
+        <div class="fact"><h3>İşlev</h3><p id="dFn"></p></div>
+        <div class="fact"><h3>Klinik not</h3><p id="dClin"></p></div>
+        <div class="structure-meta"><div>İngilizce<strong id="dEn"></strong></div><div>Kimlik<strong id="dId"></strong></div></div>
+        <div class="member-list"><h3 id="dMembersTitle">Aynı sistemde</h3><div id="dMembers"></div></div>
+      </div>
+      <div class="detail-actions">
+        <button class="primary-action" id="btnIsolate"><svg viewBox="0 0 24 24" width="16" height="16"><circle cx="12" cy="12" r="3" fill="currentColor"/><path d="M3 9V3h6M21 9V3h-6M3 15v6h6M21 15v6h-6" fill="none" stroke="currentColor" stroke-width="2"/></svg><span id="isolateLabel">Yalnız bunu göster</span></button>
+        <div class="secondary-row"><button class="secondary-action" id="btnFocus">Odakla</button><button class="secondary-action" id="btnHide">Gizle</button></div>
+      </div>
+    </aside>
+
+    <div class="search-panel glass" id="searchPanel" hidden>
+      <input id="searchInput" type="search" placeholder="Yapı ara: mitral, LAD, His…" autocomplete="off" />
+      <div class="search-results" id="searchResults"></div>
+      <p class="search-note">Türkçe, İngilizce veya Latince ad ile arayın. ↑↓ ile gezinin, Enter ile seçin.</p>
+    </div>
+
+    <aside class="about-sheet glass" id="about" hidden>
+      <button class="close" id="aboutClose" aria-label="Kapat">×</button>
+      <div class="eyebrow">HAKKINDA</div>
+      <h2>Kalp Atlası</h2>
+      <div class="about-copy">
+        <p>Tüm geometri tarayıcıda, dış model dosyası olmadan <strong>sıfırdan üretilir</strong>: odacıklar işaretli mesafe alanlarıyla (SDF) tanımlanır ve Surface Nets ile örülür; damarlar, kapakçıklar, kordalar ve ileti sistemi parametrik olarak kurulur.</p>
+        <p>Her parça ayrı bir three.js nesnesidir ve aynı vücut koordinat sisteminde tanımlandığı için tek tek kullanılabilir veya kusursuz biçimde birleşir. Tek bir GPU deformasyon alanı tüm parçaları birlikte attırır: AV düzlemi apekse iner, duvar kalınlaşır (miyokard sıkıştırılamazlığı), sol ventrikül burkulur (torsiyon), atriyumlar kasılır, arterler basınç dalgasıyla genişler.</p>
+        <h3>Fizyoloji</h3>
+        <p>Wiggers diyagramına göre zamanlanmış kardiyak döngü, iki elemanlı Windkessel aortu, basınç–hacim ilişkileri, sentetik EKG ve beş ritim (normal sinüs, AF, 1. ve 3. derece AV blok, VF). Kapakçıklar gerçek koaptasyon geometrisiyle açılıp kapanır; kordalar papiller kaslara bağlı kalır.</p>
+        <h3>Doğruluk</h3>
+        <p>Boyutlar ve topografik ilişkiler erişkin referans değerlerine göre modellenmiştir; ancak bu bir hasta taraması değil, idealize edilmiş prosedürel bir modeldir ve bireysel varyasyonları içermez. Eğitim amaçlıdır; tanı veya cerrahi planlama için kullanılmamalıdır.</p>
+        <h3>Klavye</h3>
+        <p><kbd>Boşluk</kbd> oynat/duraklat · <kbd>/</kbd> ara · <kbd>E</kbd> ayrıştır · <kbd>B</kbd> birleştir · <kbd>1–6</kbd> görünümler · <kbd>R</kbd> döndür · <kbd>Esc</kbd> kapat</p>
+      </div>
+    </aside>
+
+    <div class="loading glass" id="loading">
+      <div>
+        <strong>Kalp üretiliyor</strong>
+        <span id="loadingStep">Hazırlanıyor…</span>
+        <div class="loading-track"><i id="loadingBar" style="width:0%"></i></div>
+      </div>
+    </div>
+
+    <footer class="studio-footer">
+      <span>Prosedürel geometri<b>·</b>three.js r160<b>·</b>Eğitim amaçlıdır, tanısal değildir</span>
+      <span id="fps"></span>
+    </footer>
+  </main>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
